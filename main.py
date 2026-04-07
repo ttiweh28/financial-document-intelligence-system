@@ -3,17 +3,16 @@ import os
 import config
 
 from agents import Agent, Runner, trace
-from my_agents.parser_agent import parser_agent
-from my_agents.entity_agent import entity_agent
-from my_agents.computation_agent import computation_agent
-from my_agents.anomaly_agent import anomaly_agent
+from financial_agents.parser_agent import parser_agent
+from financial_agents.entity_agent import entity_agent
+from financial_agents.computation_agent import computation_agent
+from financial_agents.anomaly_agent import anomaly_agent
 
 
 from config import MODEL
 
 
 #Agent-as-Tools
-
 parser_tool = parser_agent.as_tool(
     tool_name="parse_document",
     tool_description="Clean and extract document text"
