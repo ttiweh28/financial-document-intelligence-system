@@ -2,7 +2,7 @@ import asyncio
 import os
 import config
 
-from agents import Agent, Runner, trace
+from agents import Agent, Runner, trace,SQLiteSession
 from financial_agents import explanation_agent, summarizer_agent
 from financial_agents.parser_agent import parser_agent
 from financial_agents.entity_agent import entity_agent
@@ -79,15 +79,47 @@ orchestrator_agent = Agent(
         """
 )
 
-# pipeline 
-async def process_document(file_path: str):
+#creating session to support followup questions on finanacial repport 
+DB_PATH = "financial_sessions.db"
 
-    with trace("Full Financial Workflow"):
+def get_session(user_id: str):
+    """
+    Create or retrieve session per user
+    """
+    return SQLiteSession(
+        f"user_{user_id}",
+        db_path=DB_PATH
+    )
+
+
+# pipeline 
+async def process_document(user_id: str, file_path: str):
+
+    session = get_session(user_id)
+
+    with trace(f"Financial Workflow - User {user_id}"):
 
         result = await Runner.run(
             orchestrator_agent,
-            f"Process this financial document: {file_path}"
+            f"Process this financial document: {file_path}",
+            session=session
         )
 
         return result.final_output
 
+
+
+# Support any followup questions
+async def follow_up(user_id: str, question: str):
+
+    session = get_session(user_id)
+
+    with trace(f"Follow-up - User {user_id}"):
+
+        result = await Runner.run(
+            orchestrator_agent,
+            question,
+            session=session
+        )
+
+        return result.final_output
