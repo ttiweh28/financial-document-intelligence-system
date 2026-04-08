@@ -1,5 +1,7 @@
 import asyncio
 import os
+
+from openai.types.graders.score_model_grader_param import Input
 import config
 
 from agents import Agent, Runner, trace,SQLiteSession
@@ -13,6 +15,7 @@ from financial_agents.summarizer_agent import summarizer_agent
 
 
 from config import MODEL
+from guardrails import inputguardrail, outputguardrail
 
 
 #Agent-as-Tools
@@ -57,6 +60,8 @@ orchestrator_agent = Agent(
         explanation_tool,
         summarisation_tool
     ],
+    input_guardrails=[inputguardrail],
+    output_guardrails=[outputguardrail],
     instructions="""
         You are a financial document orchestrator. Your job is to coordinate specialized agents and tools to fully analyze financial documents and deliver clear, accurate, and structured results.
 
