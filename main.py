@@ -8,6 +8,8 @@ from financial_agents.parser_agent import parser_agent
 from financial_agents.entity_agent import entity_agent
 from financial_agents.computation_agent import computation_agent
 from financial_agents.anomaly_agent import anomaly_agent
+from financial_agents.explanation_agent import explanation_agent
+from financial_agents.summarizer_agent import summarizer_agent
 
 
 from config import MODEL
@@ -31,16 +33,16 @@ computation_tool = computation_agent.as_tool(
 
 anomaly_tool = anomaly_agent.as_tool(
     tool_name="detect_anomalies",
-    tool_description="Detect anomalies"
+    tool_description="Detect anomalies in financial data"
 )
 
 explanation_tool = explanation_agent.as_tool(
-    tool_name="explain_metrics",
-    tool_description="Explain financials"
+    tool_name="explain_issues",
+    tool_description="Explain anomalies and issues"
 )
 summarisation_tool = summarizer_agent.as_tool(
-    tool_name="Summarize_report",
-    tool_description="Summarize financial report"
+    tool_name="generate_summary",
+    tool_description="Generate financial summary"
 )
 
 # Orchestrator Agent
@@ -63,9 +65,8 @@ orchestrator_agent = Agent(
         2. extract_entities    - Extract all financial entities from parsed content
         3. compute_metrics     - Run calculations and derive financial metrics
         4. detect_anomalies    - Identify irregularities, duplicates, or suspicious patterns
-        5. validate_data       - Cross-check outputs from previous steps for consistency
-        6. generate_summary    - Produce a structured summary of all findings
-        7. explain_issues      - Clearly explain any anomalies or validation failures found
+        5. generate_summary    - Produce a structured summary of all findings
+        6. explain_issues      - Clearly explain any anomalies or validation failures found
 
         RULES:
         - Always execute tools in the order listed above
@@ -74,7 +75,19 @@ orchestrator_agent = Agent(
         - Pass the output of each step as input to the next where relevant
         - If a tool fails or returns empty results, note it and continue the pipeline
         - Combine all outputs into a single, coherent final response
+
         """
 )
 
-# To-do: Write the pipeline to test the agent 
+# pipeline 
+async def process_document(file_path: str):
+
+    with trace("Full Financial Workflow"):
+
+        result = await Runner.run(
+            orchestrator_agent,
+            f"Process this financial document: {file_path}"
+        )
+
+        return result.final_output
+
