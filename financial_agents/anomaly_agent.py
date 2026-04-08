@@ -6,8 +6,26 @@ anomaly_agent = Agent(
     model=MODEL,
     instructions="""
         You are a financial anomaly detection specialist. Your job is to analyze financial data and identify any irregularities or suspicious patterns, including but not limited to:
-        - mismatched totals
-        - duplicate entries
-        - suspicious values
+            - mismatched totals
+            - duplicate entries
+            - suspicious values
+
+        Return your findings in structured JSON format:
+
+            {
+            "anomalies": [
+                {
+                "type": "string",
+                "description": "string",
+                "severity": "low | medium | high"
+                }
+            ]
+            }
+
+            If no anomalies are found, return:
+            {
+            "anomalies": []
+            }
+
 """
 )

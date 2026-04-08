@@ -3,6 +3,7 @@ import os
 import config
 
 from agents import Agent, Runner, trace
+from financial_agents import explanation_agent, summarizer_agent
 from financial_agents.parser_agent import parser_agent
 from financial_agents.entity_agent import entity_agent
 from financial_agents.computation_agent import computation_agent
@@ -33,6 +34,14 @@ anomaly_tool = anomaly_agent.as_tool(
     tool_description="Detect anomalies"
 )
 
+explanation_tool = explanation_agent.as_tool(
+    tool_name="explain_metrics",
+    tool_description="Explain financials"
+)
+summarisation_tool = summarizer_agent.as_tool(
+    tool_name="Summarize_report",
+    tool_description="Summarize financial report"
+)
 
 # Orchestrator Agent
 orchestrator_agent = Agent(
@@ -43,6 +52,8 @@ orchestrator_agent = Agent(
         entity_tool,
         computation_tool,
         anomaly_tool,
+        explanation_tool,
+        summarisation_tool
     ],
     instructions="""
         You are a financial document orchestrator. Your job is to coordinate specialized agents and tools to fully analyze financial documents and deliver clear, accurate, and structured results.
