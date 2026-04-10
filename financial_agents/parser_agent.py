@@ -1,12 +1,18 @@
 from agents import Agent, FileSearchTool
 from config import MODEL
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+vector_store_id = os.getenv("VECTOR_STORE_ID")
 
 parser_agent = Agent(
     name="Document Parser Agent",
     model=MODEL,
     tools=[
         FileSearchTool(
-            vector_store_ids=["vs_69d9174f3bb881918f9c22bb9202af7f"],
+            vector_store_ids=[vector_store_id],
             max_num_results=20
         )
     ],
