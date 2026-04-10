@@ -1,31 +1,19 @@
-from agents import Agent, Runner, trace
+from agents import Agent, FileSearchTool
 from config import MODEL
-from tools.ocr_tool import ocr_tool 
-
 
 parser_agent = Agent(
     name="Document Parser Agent",
     model=MODEL,
-    tools=[ocr_tool],
+    tools=[
+        FileSearchTool(
+            vector_store_ids=["vs_69d9174f3bb881918f9c22bb9202af7f"],
+            max_num_results=20
+        )
+    ],
     instructions="""
-       You are responsible for extracting text from documents.
-
-            IMPORTANT:
-            - Always call the OCR tool with the provided file_path
-            - Do NOT try to interpret the file path yourself
-
-            Input will be:
-            {
-            "file_path": "path_to_file"
-            }
-
-            You must call:
-            ocr_extract_text(file_path=...)
-
-            Then:
-            - clean the text
-            - return readable output
-
-            Do NOT analyze.
-"""
+        You are responsible for extracting text from financial documents.
+        Use the file_search tool to retrieve all relevant content.
+        Return the full extracted text cleanly formatted.
+        Do NOT analyze — only extract and clean.
+    """
 )

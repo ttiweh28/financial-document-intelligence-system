@@ -1,10 +1,9 @@
 import asyncio
 import os
 
-
 import config
 
-from agents import Agent, Runner, trace,SQLiteSession
+from agents import Agent, Runner, trace, SQLiteSession
 from financial_agents.parser_agent import parser_agent
 from financial_agents.entity_agent import entity_agent
 from financial_agents.computation_agent import computation_agent
@@ -16,11 +15,10 @@ from guardrails.financial_input_guardrail import financial_input_guardrail
 from guardrails.financial_output_guardrail import financial_output_guardrail
 
 
-
-#Agent-as-Tools
+# Agent-as-Tools
 parser_tool = parser_agent.as_tool(
     tool_name="parse_document",
-    tool_description="Clean and extract document text"
+    tool_description="Retrieve and clean document content from vector store"
 )
 
 entity_tool = entity_agent.as_tool(
@@ -42,10 +40,12 @@ explanation_tool = explanation_agent.as_tool(
     tool_name="explain_issues",
     tool_description="Explain anomalies and issues"
 )
+
 summarisation_tool = summarizer_agent.as_tool(
     tool_name="generate_summary",
     tool_description="Generate financial summary"
 )
+
 
 # Orchestrator Agent
 orchestrator_agent = Agent(
@@ -64,16 +64,8 @@ orchestrator_agent = Agent(
     instructions="""
         You are a financial document orchestrator.
 
-        The input will contain:
-        - file_path
-
-        You MUST pass file_path to parse_document tool.
-
-        Do NOT treat file_path as text.
-        Always call tools with proper arguments.
-
         Always follow this pipeline in order:
-        1. parse_document      - Parse and clean the raw document
+        1. parse_document      - Retrieve and clean document content from vector store
         2. extract_entities    - Extract all financial entities from parsed content
         3. compute_metrics     - Run calculations and derive financial metrics
         4. detect_anomalies    - Identify irregularities, duplicates, or suspicious patterns
@@ -87,65 +79,59 @@ orchestrator_agent = Agent(
         - Pass the output of each step as input to the next where relevant
         - If a tool fails or returns empty results, note it and continue the pipeline
         - Combine all outputs into a single, coherent final response
-
-        """
+    """
 )
 
-#creating session to support followup questions on finanacial repport 
+
+# Session management
 DB_PATH = "financial_sessions.db"
 
-if os.path.exists(DB_PATH):
-    os.remove(DB_PATH)
-
 def get_session(user_id: str):
-    """
-    Create or retrieve session per user
-    """
+    """Create or retrieve session per user."""
     return SQLiteSession(
         f"user_{user_id}",
         db_path=DB_PATH
     )
 
 
-# pipeline 
-async def process_document(user_id: str, file_path: str):
-
+# Main pipeline
+async def process_document(user_id: str):
     session = get_session(user_id)
+
     with trace(f"Financial Workflow - User {user_id}"):
         result = await Runner.run(
-             orchestrator_agent,
-            f"Process this financial document at path: {file_path}",
+            orchestrator_agent,
+            "Process the uploaded financial document and extract all data.",
             session=session
-    )
+        )
 
     return result.final_output
 
 
-
-# Support any followup questions
+# Follow-up questions
 async def follow_up(user_id: str, question: str):
-
     session = get_session(user_id)
 
     with trace(f"Follow-up - User {user_id}"):
-
         result = await Runner.run(
             orchestrator_agent,
             question,
             session=session
         )
 
-        return result.final_output
-
+    return result.final_output
 
 
 if __name__ == "__main__":
-    import asyncio
-
     user_id = "test_user"
-    file_path = "/Users/ttiweht/Desktop/financial-document-intelligence-system/documents/sample.pdf"
 
-    result = asyncio.run(process_document(user_id, file_path))
-
+    # Process document
+    result = asyncio.run(process_document(user_id))
     print("\n===== FINAL OUTPUT =====\n")
     print(result)
+
+    # Test follow-up
+    question = "What is the tax rate on this invoice?"
+    follow_up_result = asyncio.run(follow_up(user_id, question))
+    print("\n===== FOLLOW UP =====\n")
+    print(follow_up_result)

@@ -1,19 +1,19 @@
 from agents import Agent
 from config import MODEL
-from tools.computation_tool import computation_tool
-
+from tools.computation_tool import compute_metrics
 
 computation_agent = Agent(
-    name = "Computation Agent",
+    name="Computation Agent",
     model=MODEL,
-    tools=[computation_tool],
+    tools=[compute_metrics],
     instructions="""
-            You are a financial computation specialist. Use the Python tool to perform all calculations on provided data, including but not limited to totals, balances, and financial metrics.
+        You are a financial computation specialist. Compute totals, balances,
+        and financial metrics on provided data.
 
-            RULES:
-            - Always use the Python tool — never estimate or assume
-            - Only use data explicitly provided
-            - If data is insufficient, state what is missing before proceeding
-            - Return results in a structured, readable format
-"""
+        RULES:
+        - Only use data explicitly provided
+        - If data is insufficient, state what is missing
+        - Return results in a structured, readable format
+        - Perform all arithmetic yourself based on the data returned by the tool
+    """
 )
