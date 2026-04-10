@@ -132,14 +132,17 @@ def get_session(user_id: str):
 
 
 # Main pipeline
-async def process_document(user_id: str):
-    session = get_session(user_id)
+async def process_document(user_id: str, *, persistent_session: bool = True):
+    # When persistent_session is False, each run has no prior turns. Otherwise the
+    # model may follow stale SQLiteSession history (e.g. an old "parse failed"
+    # narrative) even though the vector store and tools are configured correctly.
+    session = get_session(user_id) if persistent_session else None
 
     with trace(f"Financial Workflow - User {user_id}"):
         result = await Runner.run(
             orchestrator_agent,
             "Process the uploaded financial document and extract all data.",
-            session=session
+            session=session,
         )
 
     return result.final_output
@@ -162,7 +165,8 @@ async def follow_up(user_id: str, question: str):
 if __name__ == "__main__":
     user_id = "test_user"
 
-    result = asyncio.run(process_document(user_id))
+    # One-shot CLI: do not reuse SQLite history, or repeated runs can echo old failures.
+    result = asyncio.run(process_document(user_id, persistent_session=False))
 
     print("\n========== FINANCIAL DOCUMENT REPORT ==========\n")
     print(f"📄 Document Type     : {result.parsed_document.document_type}")
@@ -177,7 +181,7 @@ if __name__ == "__main__":
     for item in result.entities.line_items:
         print(f"   • {item}")
     print()
-    print("── Financials ──────────────────────────────────")
+    print("── Financial Report ──────────────────────────────────")
     print(f"   Subtotal          : ${result.metrics.subtotal}")
     print(f"   Tax ({result.metrics.tax_rate}%)        : ${result.metrics.tax}")
     print(f"   Total             : ${result.metrics.total}")
