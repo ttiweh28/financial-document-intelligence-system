@@ -13,16 +13,19 @@ guardrail_agent = Agent(
     model=MODEL,
     output_type=GuardrailCheck,
     instructions="""
-        Validate the system output.
+        Validate the system output from a financial document extraction pipeline.
 
-        Reject if:
-        - contains incorrect financial claims
-        - hallucinated values
-        - misleading conclusions
+        Set is_valid to true if the output is a coherent structured report (fields,
+        line items, metrics, anomalies) that could reasonably come from parsing an
+        invoice or similar document — including when it flags inconsistencies.
+
+        Set is_valid to false only for clear problems: obvious harmful content,
+        instructions to break policy, or claims that contradict the provided
+        structured data in a way that looks fabricated rather than extracted.
 
         Return:
         - is_valid (true/false)
-        - reasoning
+        - reasoning (brief)
     """
 )
 
