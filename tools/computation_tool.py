@@ -1,4 +1,8 @@
 from agents.tool import CodeInterpreterTool
 
-code_tool = CodeInterpreterTool()
+computation_tool  = CodeInterpreterTool(
+    tool_config={
+        "timeout": 30
+    }
+)
 

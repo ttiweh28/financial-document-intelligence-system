@@ -1,7 +1,7 @@
 from agents import Agent, ModelSettings
 from config import MODEL 
 
-summarizer = Agent(
+summarizer_agent= Agent(
 
     name = "Summarizer Agent",
     model = MODEL,

@@ -1,21 +1,20 @@
 import asyncio
 import os
 
-from openai.types.graders.score_model_grader_param import Input
+
 import config
 
 from agents import Agent, Runner, trace,SQLiteSession
-from financial_agents import explanation_agent, summarizer_agent
 from financial_agents.parser_agent import parser_agent
 from financial_agents.entity_agent import entity_agent
 from financial_agents.computation_agent import computation_agent
 from financial_agents.anomaly_agent import anomaly_agent
 from financial_agents.explanation_agent import explanation_agent
 from financial_agents.summarizer_agent import summarizer_agent
-
-
 from config import MODEL
-from guardrails import inputguardrail, outputguardrail
+from guardrails.financial_input_guardrail import financial_input_guardrail
+from guardrails.financial_output_guardrail import financial_output_guardrail
+
 
 
 #Agent-as-Tools
@@ -60,8 +59,8 @@ orchestrator_agent = Agent(
         explanation_tool,
         summarisation_tool
     ],
-    input_guardrails=[inputguardrail],
-    output_guardrails=[outputguardrail],
+    input_guardrails=[financial_input_guardrail],
+    output_guardrails=[financial_output_guardrail],
     instructions="""
         You are a financial document orchestrator. Your job is to coordinate specialized agents and tools to fully analyze financial documents and deliver clear, accurate, and structured results.
 
@@ -128,3 +127,16 @@ async def follow_up(user_id: str, question: str):
         )
 
         return result.final_output
+
+
+
+if __name__ == "__main__":
+    import asyncio
+
+    user_id = "test_user"
+    file_path = "/Users/ttiweht/Desktop/financial-document-intelligence-system/documents/sample.pdf"
+
+    result = asyncio.run(process_document(user_id, file_path))
+
+    print("\n===== FINAL OUTPUT =====\n")
+    print(result)

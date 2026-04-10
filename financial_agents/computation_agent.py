@@ -1,6 +1,7 @@
 from agents import Agent
 from config import MODEL
-from main import computation_tool 
+from tools.computation_tool import computation_tool
+
 
 computation_agent = Agent(
     name = "Computation Agent",
