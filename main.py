@@ -13,6 +13,7 @@ from financial_agents.summarizer_agent import summarizer_agent
 from config import MODEL
 from guardrails.financial_input_guardrail import financial_input_guardrail
 from guardrails.financial_output_guardrail import financial_output_guardrail
+from models.output_schema import FinalReport
 
 
 # Agent-as-Tools
@@ -48,9 +49,44 @@ summarisation_tool = summarizer_agent.as_tool(
 
 
 # Orchestrator Agent
+# orchestrator_agent = Agent(
+#     name="Financial Orchestrator Agent",
+#     model=MODEL,
+#     tools=[
+#         parser_tool,
+#         entity_tool,
+#         computation_tool,
+#         anomaly_tool,
+#         explanation_tool,
+#         summarisation_tool
+#     ],
+#     input_guardrails=[financial_input_guardrail],
+#     output_guardrails=[financial_output_guardrail],
+#     instructions="""
+#         You are a financial document orchestrator.
+
+#         Always follow this pipeline in order:
+#         1. parse_document      - Retrieve and clean document content from vector store
+#         2. extract_entities    - Extract all financial entities from parsed content
+#         3. compute_metrics     - Run calculations and derive financial metrics
+#         4. detect_anomalies    - Identify irregularities, duplicates, or suspicious patterns
+#         5. generate_summary    - Produce a structured summary of all findings
+#         6. explain_issues      - Clearly explain any anomalies or validation failures found
+
+#         RULES:
+#         - Always execute tools in the order listed above
+#         - Never skip a step, even if the previous step returns no results
+#         - Do NOT perform any task yourself — always delegate to the appropriate tool
+#         - Pass the output of each step as input to the next where relevant
+#         - If a tool fails or returns empty results, note it and continue the pipeline
+#         - Combine all outputs into a single, coherent final response
+#     """
+# )
+
 orchestrator_agent = Agent(
     name="Financial Orchestrator Agent",
     model=MODEL,
+    output_type=FinalReport,
     tools=[
         parser_tool,
         entity_tool,
@@ -78,9 +114,10 @@ orchestrator_agent = Agent(
         - Do NOT perform any task yourself — always delegate to the appropriate tool
         - Pass the output of each step as input to the next where relevant
         - If a tool fails or returns empty results, note it and continue the pipeline
-        - Combine all outputs into a single, coherent final response
+        - Return your final output as a structured JSON object matching the FinalReport schema
     """
 )
+
 
 
 # Session management
@@ -125,13 +162,37 @@ async def follow_up(user_id: str, question: str):
 if __name__ == "__main__":
     user_id = "test_user"
 
-    # Process document
     result = asyncio.run(process_document(user_id))
-    print("\n===== FINAL OUTPUT =====\n")
-    print(result)
 
-    # Test follow-up
-    question = "What is the tax rate on this invoice?"
-    follow_up_result = asyncio.run(follow_up(user_id, question))
-    print("\n===== FOLLOW UP =====\n")
-    print(follow_up_result)
+    print("\n========== FINANCIAL DOCUMENT REPORT ==========\n")
+    print(f"📄 Document Type     : {result.parsed_document.document_type}")
+    print(f"🏢 Vendor            : {result.entities.vendor}")
+    print(f"👤 Client            : {result.entities.client}")
+    print(f"🧾 Invoice #         : {result.entities.invoice_number}")
+    print(f"📅 Invoice Date      : {result.entities.invoice_date}")
+    print(f"📅 Due Date          : {result.entities.due_date}")
+    print(f"💱 Currency          : {result.entities.currency}")
+    print()
+    print("── Line Items ──────────────────────────────────")
+    for item in result.entities.line_items:
+        print(f"   • {item}")
+    print()
+    print("── Financials ──────────────────────────────────")
+    print(f"   Subtotal          : ${result.metrics.subtotal}")
+    print(f"   Tax ({result.metrics.tax_rate}%)        : ${result.metrics.tax}")
+    print(f"   Total             : ${result.metrics.total}")
+    print(f"   Balanced          : {'✅' if result.metrics.is_balanced else '❌'}")
+    print()
+    print("── Anomalies ───────────────────────────────────")
+    if result.anomalies.anomalies_found:
+        for a in result.anomalies.anomalies:
+            print(f"   ⚠️  {a}")
+    else:
+        print("   ✅ No anomalies detected")
+    print()
+    print("── Summary ─────────────────────────────────────")
+    print(f"   {result.summary}")
+    print()
+    print("── Explanation ─────────────────────────────────")
+    print(f"   {result.explanation}")
+    print("\n================================================\n")
