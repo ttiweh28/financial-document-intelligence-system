@@ -62,7 +62,15 @@ orchestrator_agent = Agent(
     input_guardrails=[financial_input_guardrail],
     output_guardrails=[financial_output_guardrail],
     instructions="""
-        You are a financial document orchestrator. Your job is to coordinate specialized agents and tools to fully analyze financial documents and deliver clear, accurate, and structured results.
+        You are a financial document orchestrator.
+
+        The input will contain:
+        - file_path
+
+        You MUST pass file_path to parse_document tool.
+
+        Do NOT treat file_path as text.
+        Always call tools with proper arguments.
 
         Always follow this pipeline in order:
         1. parse_document      - Parse and clean the raw document
@@ -86,6 +94,9 @@ orchestrator_agent = Agent(
 #creating session to support followup questions on finanacial repport 
 DB_PATH = "financial_sessions.db"
 
+if os.path.exists(DB_PATH):
+    os.remove(DB_PATH)
+
 def get_session(user_id: str):
     """
     Create or retrieve session per user
@@ -100,16 +111,14 @@ def get_session(user_id: str):
 async def process_document(user_id: str, file_path: str):
 
     session = get_session(user_id)
-
     with trace(f"Financial Workflow - User {user_id}"):
-
         result = await Runner.run(
-            orchestrator_agent,
-            f"Process this financial document: {file_path}",
+             orchestrator_agent,
+            f"Process this financial document at path: {file_path}",
             session=session
-        )
+    )
 
-        return result.final_output
+    return result.final_output
 
 
 

@@ -8,14 +8,24 @@ parser_agent = Agent(
     model=MODEL,
     tools=[ocr_tool],
     instructions="""
-        Use the OCR tool to extract text from the document.
+       You are responsible for extracting text from documents.
 
-        Then:
+            IMPORTANT:
+            - Always call the OCR tool with the provided file_path
+            - Do NOT try to interpret the file path yourself
 
-        - Remove unnecessary formattings
-        - Keep all financial information intact
-        - Return plain readable text only
+            Input will be:
+            {
+            "file_path": "path_to_file"
+            }
 
-        Do NOT analyze or interpret.
+            You must call:
+            ocr_extract_text(file_path=...)
+
+            Then:
+            - clean the text
+            - return readable output
+
+            Do NOT analyze.
 """
 )
