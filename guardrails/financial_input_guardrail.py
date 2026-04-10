@@ -32,9 +32,30 @@ async def financial_input_guardrail(ctx: RunContextWrapper, agent, input_data):
 
     text = str(input_data).lower()
 
-    is_valid = any(keyword in text for keyword in [
-        "invoice", "amount", "total", "financial", "transaction", "report"
-    ])
+    # Include follow-up phrasing about invoices (e.g. "order number", "due date")
+    # so short questions are not rejected after a document session has started.
+    is_valid = any(
+        keyword in text
+        for keyword in [
+            "invoice",
+            "amount",
+            "total",
+            "financial",
+            "transaction",
+            "report",
+            "order",
+            "vendor",
+            "client",
+            "tax",
+            "payment",
+            "due",
+            "document",
+            "subtotal",
+            "currency",
+            "balance",
+            "line",
+        ]
+    )
 
     return GuardrailFunctionOutput(
         tripwire_triggered=not is_valid,
