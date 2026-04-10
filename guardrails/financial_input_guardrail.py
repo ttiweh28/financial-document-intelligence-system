@@ -27,14 +27,19 @@ guardrail_agent = Agent(
 """
 )
 
-
 @input_guardrail()
 async def financial_input_guardrail(ctx: RunContextWrapper, agent, input_data):
 
-    result = await Runner.run(guardrail_agent, input_data)
-    output = result.final_output_as(GuardrailCheck)
+    text = str(input_data).lower()
+
+    is_valid = any(keyword in text for keyword in [
+        "invoice", "amount", "total", "financial", "transaction", "report"
+    ])
 
     return GuardrailFunctionOutput(
-        tripwire_triggered=not output.is_valid,
-        output_info=output
+        tripwire_triggered=not is_valid,
+        output_info={
+            "is_valid": is_valid,
+            "reasoning": "Basic keyword validation"
+        }
     )
