@@ -63,7 +63,7 @@ async def process_document(user_id: str = Form(...), file: UploadFile = File(...
     }
 
 
-@app.post("/follow_up")
+@app.post("/follow-up")
 async def follow_up(user_id: str, question: str):
     session = get_session(user_id)
     try:
