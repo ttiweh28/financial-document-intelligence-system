@@ -38,8 +38,11 @@ anomaly_tool = anomaly_agent.as_tool(
 )
 
 explanation_tool = explanation_agent.as_tool(
-    tool_name="explain_issues",
-    tool_description="Explain anomalies and issues"
+    tool_name="explain_document",
+    tool_description=(
+    "Use this tool when the user asks to understand, summarize, or analyze a financial document, "
+    "including explaining its contents or identifying and explaining anomalies."
+)
 )
 
 summarisation_tool = summarizer_agent.as_tool(
@@ -47,41 +50,6 @@ summarisation_tool = summarizer_agent.as_tool(
     tool_description="Generate financial summary"
 )
 
-
-# Orchestrator Agent
-# orchestrator_agent = Agent(
-#     name="Financial Orchestrator Agent",
-#     model=MODEL,
-#     tools=[
-#         parser_tool,
-#         entity_tool,
-#         computation_tool,
-#         anomaly_tool,
-#         explanation_tool,
-#         summarisation_tool
-#     ],
-#     input_guardrails=[financial_input_guardrail],
-#     output_guardrails=[financial_output_guardrail],
-#     instructions="""
-#         You are a financial document orchestrator.
-
-#         Always follow this pipeline in order:
-#         1. parse_document      - Retrieve and clean document content from vector store
-#         2. extract_entities    - Extract all financial entities from parsed content
-#         3. compute_metrics     - Run calculations and derive financial metrics
-#         4. detect_anomalies    - Identify irregularities, duplicates, or suspicious patterns
-#         5. generate_summary    - Produce a structured summary of all findings
-#         6. explain_issues      - Clearly explain any anomalies or validation failures found
-
-#         RULES:
-#         - Always execute tools in the order listed above
-#         - Never skip a step, even if the previous step returns no results
-#         - Do NOT perform any task yourself — always delegate to the appropriate tool
-#         - Pass the output of each step as input to the next where relevant
-#         - If a tool fails or returns empty results, note it and continue the pipeline
-#         - Combine all outputs into a single, coherent final response
-#     """
-# )
 
 orchestrator_agent = Agent(
     name="Financial Orchestrator Agent",
